@@ -1,0 +1,33 @@
+FROM python:3.6.4
+
+# install environment dependencies
+RUN apt-get update -yqq \
+  && apt-get install -yqq --no-install-recommends \
+    netcat \
+  && apt-get -q clean
+
+  RUN apt-get update && apt-get install -y apt-transport-https dos2unix
+
+# set working directory
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+# add requirements
+COPY ./requirements.txt /usr/src/app/requirements.txt
+
+# install requirements
+RUN pip install -r requirements.txt
+
+# add entrypoint.sh
+COPY ./entrypoint-prod.sh /usr/src/app/entrypoint-prod.sh
+RUN find . -type f -print0 | xargs -0 dos2unix
+# add app
+COPY . /usr/src/app
+
+#Execution
+RUN chmod 777 ./entrypoint-prod.sh
+RUN chmod 777 /usr/src/app/entrypoint-prod.sh
+RUN ls /usr/src/app/entrypoint-prod.sh
+RUN dos2unix /usr/src/app/entrypoint-prod.sh
+# run server
+CMD ["./entrypoint-prod.sh"]
